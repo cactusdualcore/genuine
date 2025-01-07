@@ -1,0 +1,13 @@
+[package]
+name = "genuine"
+version = "0.1.0"
+edition = "2021"
+authors = ["Paul Bühne"]
+license = "MIT"
+description = "A tiny web framework"
+homepage = "https://github.com/cactusdualcore/genuine"
+repository = "https://github.com/cactusdualcore/genuine"
+readme = "README.md"
+keywords = ["web", "api"]
+
+[dependencies]
