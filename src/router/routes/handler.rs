@@ -56,7 +56,7 @@ where
     P1: FromRequest,
     P2: FromRequest,
 {
-    fn handle_request<'a>(&'a self, req: Request) -> Response<Bytes> {
+    fn handle_request(&self, req: Request) -> Response<Bytes> {
         let p1 = P1::from_request(&req).unwrap();
         let p2 = P2::from_request(&req).unwrap();
         self(p1, p2).into_response()

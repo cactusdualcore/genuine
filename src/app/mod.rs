@@ -64,3 +64,9 @@ impl App {
         rt.block_on(server.bind())
     }
 }
+
+impl Default for App {
+    fn default() -> Self {
+        Self::new()
+    }
+}

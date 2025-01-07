@@ -141,13 +141,13 @@ mod parser {
             //
             // [spec]: https://www.rfc-editor.org/rfc/rfc3986#section-3.3
             {
-                if let Ok(_) = self.consume(b'/') {
+                if self.consume(b'/').is_ok() {
                     return Err(ParseError::IsNotAbsolute);
                 }
             }
 
             let mut parts = Vec::new();
-            while let Ok(_) = self.consume(b'/') {
+            while self.consume(b'/').is_ok() {
                 match self.peek() {
                     Some(b'{') => {
                         let literal = self.bytes[self.anchor..self.cursor].to_vec();
@@ -172,10 +172,10 @@ mod parser {
             }
 
             let tail = &self.bytes[self.anchor..self.cursor];
-            if tail.len() > 0 {
-                parts.push(Part::Literal(tail.to_vec()));
+            if tail.is_empty() {
+                debug_assert_eq!(self.cursor, self.bytes.len());
             } else {
-                debug_assert_eq!(self.cursor, self.bytes.len())
+                parts.push(Part::Literal(tail.to_vec()));
             }
 
             Ok(parts)
@@ -184,7 +184,7 @@ mod parser {
         /// Parses a parameter name.
         fn parameter_name(&mut self) -> Result<String> {
             let name = {
-                let (name_bytes, _) = self.capture(|parser| {
+                let (name_bytes, ()) = self.capture(|parser| {
                     assert!(parser.any()?.is_ascii_alphabetic());
                     parser.skip_while(move |x| x.is_ascii_alphanumeric());
                     Ok(())

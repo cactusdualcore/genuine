@@ -24,7 +24,7 @@ pub struct Router {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum RouterError {
+pub enum Error {
     #[error("invalid request body")]
     InvalidBody,
 }
@@ -60,7 +60,7 @@ impl Router {
 
 impl Service<Request<Incoming>> for Router {
     type Response = Response<BoxBody<Bytes, hyper::Error>>;
-    type Error = RouterError;
+    type Error = Error;
     type Future = BoxedFuture<Result<Self::Response, Self::Error>>;
 
     fn call(&self, req: Request<Incoming>) -> Self::Future {
@@ -84,19 +84,19 @@ impl Service<Request<Incoming>> for Router {
                 for _before in &router.before {}
                 for _before in &group.before {}
 
-                let res = route.handler.handle_request(req).map(full);
+                let resp = route.handler.handle_request(req).map(full);
 
                 for _after in &group.after {}
                 for _after in &router.after {}
 
-                Ok(res)
+                Ok(resp)
             }),
             None => Box::pin(async move { Ok(not_found()) }),
         };
 
         for _finish in &self.finish {}
 
-        return fut;
+        fut
     }
 }
 
@@ -107,12 +107,12 @@ fn ensure_max_body_size(req: Request<Incoming>) -> Option<Request<Incoming>> {
     (upper <= MAX_BODY_SIZE).then_some(req)
 }
 
-async fn collect_full_request_body(req: Request<Incoming>) -> Result<Request<Bytes>, RouterError> {
+async fn collect_full_request_body(req: Request<Incoming>) -> Result<Request<Bytes>, Error> {
     let (parts, body) = req.into_parts();
     let body = body
         .collect()
         .await
-        .map_err(|_| RouterError::InvalidBody)?
+        .map_err(|_| Error::InvalidBody)?
         .to_bytes();
     Ok(Request::from_parts(parts, body))
 }
